@@ -37,7 +37,7 @@
     </p>
     <button onclick="startRecording(this);">
         START RECORDING</button>
-    <button onclick="stopRecording(this);" disabled>
+    <button id="btnStop" onclick="stopRecording(this);" disabled>
         STOP RECORDING</button>
     <h2>
         Your Recordings</h2>
@@ -74,19 +74,40 @@
 
         function startRecording(button) {
             recorder && recorder.record();
+
+            recordingTimer = 30; //seconds
+            recordingCounter = setInterval(recordingCountdown, 1000); //1000 will  run it every 1 second
+
             button.disabled = true;
             button.nextElementSibling.disabled = false;
             __log('Recording...');
         }
 
         function stopRecording(button) {
+            clearInterval(recordingCounter);
+
             recorder && recorder.stop();
+
+            button.innerText = 'STOP RECORDING';
             button.disabled = true;
             button.previousElementSibling.disabled = false;
+
             __log('Stopped recording.');
 
             // create WAV download link using audio data blob
             createDownloadLink();
+        }
+
+        var recordingTimer = 30; //seconds
+        var recordingCounter = null;
+
+        function recordingCountdown() { //will run every 1 second
+            recordingTimer = recordingTimer - 1;
+            btnStop.innerText = 'STOP RECORDING (' + recordingTimer + ' seconds)';
+            if (recordingTimer <= 0) {
+                stopRecording(btnStop);
+                return;
+            }
         }
 
         function createDownloadLink() {
@@ -175,8 +196,10 @@
 
         function drawSVGCanvas(buffer) {
             var canvasHolder = document.getElementById('canvasHolder');
-            var canvasW = 1024; //screen.availWidth - 200; //canvas.clientHeight;
-            var canvasH = 256; //600; //canvas.clientHeight;
+            canvasHolder.innerHTML = "Generating your audio wave.. hold on..";
+
+            var canvasW = screen.availWidth - 200; //canvas.clientHeight;
+            var canvasH = 450; //canvas.clientHeight;
             var singleXUnit = canvasW / buffer.length;
 
             //__log('singleXUnit: ' + singleXUnit);
@@ -184,7 +207,13 @@
 
             var svgCancas = "<svg id='canvas' style='height: " + canvasH + "px; width: " + canvasW + "px; border: solid 1px gray'>";
 
-            for (i = 0; i < buffer.length - 1; i++) {
+            var alternateSample = 1;
+            if (buffer.length > 300000)
+                alternateSample = 2;
+            if (buffer.length > 600000)
+                alternateSample = 4;
+
+            for (i = 0; i < buffer.length - 1; i = i + alternateSample) {
 
                 //var line = document.createElement('line');
                 var x1 = i * singleXUnit;
