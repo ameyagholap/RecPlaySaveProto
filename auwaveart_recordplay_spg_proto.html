@@ -30,11 +30,15 @@
     </p>
     <h2>
         Record Wave</h2>
-    <p>
-        This is the ALPHA version of the code, eventually voice samples will be restricted
-        to 30 seconds only. For now you may record as big a sample as you wish, but for
-        sake of quicker processing and results, try shorter samples
-    </p>
+    Duration (seconds):
+    <select id="interval">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+        <option value="20">20</option>
+        <option value="25">25</option>
+        <option value="30">30</option>
+    </select>
     <button onclick="startRecording(this);">
         START RECORDING</button>
     <button id="btnStop" onclick="stopRecording(this);" disabled>
@@ -46,6 +50,8 @@
     </p>
     <ol id="recordingslist">
     </ol>
+    <h2>
+        Your Audio Wave</h2>
     <div id="canvasHolder">
     </div>
     <hr />
@@ -73,9 +79,15 @@
         }
 
         function startRecording(button) {
+
+            if (recording_buffer_list.length >= 2) {
+                alert("You have recorded 3 waves and used up a lot of browser memory. Please refresh and start over again to record more waves.");
+                return;
+            }
+
             recorder && recorder.record();
 
-            recordingTimer = 30; //seconds
+            recordingTimer = interval.value; //seconds
             recordingCounter = setInterval(recordingCountdown, 1000); //1000 will  run it every 1 second
 
             button.disabled = true;
@@ -100,6 +112,7 @@
 
         var recordingTimer = 30; //seconds
         var recordingCounter = null;
+        var recording_buffer_list = new Array();
 
         function recordingCountdown() { //will run every 1 second
             recordingTimer = recordingTimer - 1;
@@ -129,14 +142,19 @@
 
                 var au = document.createElement('audio');
                 var hf = document.createElement('a');
-                var canvas = document.createElement('canvas');
+                var hf_view_wave = document.createElement('a');
 
+                var wavID = new Date().toISOString() + '.wav';
                 au.controls = true;
                 au.src = url;
                 hf.href = url;
-                hf.download = new Date().toISOString() + '.wav';
+                hf.download = wavID;
                 hf.innerHTML = hf.download;
 
+                hf_view_wave.innerHTML = "View Wave";
+                hf_view_wave.href = "javascript:drawSVGCanvas(recording_buffer_list[" + recording_buffer_list.length + "])";
+
+                var canvas = document.createElement('canvas');
                 canvas.width = 300;
                 canvas.height = 130;
                 canvasToDraw = canvas;
@@ -146,6 +164,8 @@
 
                 td21.appendChild(au);
                 td22.appendChild(hf);
+                td22.appendChild(document.createElement('br'));
+                td22.appendChild(hf_view_wave);
                 tr2.appendChild(td21);
                 tr2.appendChild(td22);
 
@@ -156,10 +176,9 @@
                 recordingslist.appendChild(li);
             }
             catch (e) {
-                alert(e);
+                __log("Error: " + e);
             }
             __log('Creating download link..DONE');
-            __log('Generating spectrogram..');
             recorder.getBuffer(inspectFloatArray);
             recorder.clear();
         }
@@ -170,17 +189,10 @@
             try {
                 if (buffers == null || buffers.length < 1) return;
 
-                // code for playback
-                // var newSource = audio_context.createBufferSource();
-                // var newBuffer = audio_context.createBuffer(2, buffers[0].length, audio_context.sampleRate);
-                // newBuffer.getChannelData(0).set(buffers[0]);
-                // if (buffers.length > 1)
-                //     newBuffer.getChannelData(1).set(buffers[1]);
-                // newSource.buffer = newBuffer;
-                // newSource.connect(audio_context.destination);
-                // newSource.start(0);
-
                 if (buffers.length > 0) {
+                    __log('Generating spectrogram..');
+
+                    recording_buffer_list.push(buffers[0]);
 
                     drawHTMLCanvas(buffers[0]);
 
@@ -195,15 +207,11 @@
         }
 
         function drawSVGCanvas(buffer) {
-            var canvasHolder = document.getElementById('canvasHolder');
-            canvasHolder.innerHTML = "Generating your audio wave.. hold on..";
+            __log('Generating SVG audio wave..');
 
             var canvasW = screen.availWidth - 200; //canvas.clientHeight;
             var canvasH = 450; //canvas.clientHeight;
             var singleXUnit = canvasW / buffer.length;
-
-            //__log('singleXUnit: ' + singleXUnit);
-            //__log('canvas height: ' + canvasH);
 
             var svgCancas = "<svg id='canvas' style='height: " + canvasH + "px; width: " + canvasW + "px; border: solid 1px gray'>";
 
@@ -215,28 +223,21 @@
 
             for (i = 0; i < buffer.length - 1; i = i + alternateSample) {
 
-                //var line = document.createElement('line');
                 var x1 = i * singleXUnit;
                 var y1 = (1 - buffer[i]) * (canvasH / 2);
                 var x2 = (i + 1) * singleXUnit;
                 var y2 = (1 - buffer[i + 1]) * (canvasH / 2)
 
-                //line.setAttribute('x1', x1);
-                //line.setAttribute('y1', y1);
-                //line.setAttribute('x2', x2);
-                //line.setAttribute('y2', y2);
-                //line.setAttribute('style', 'stroke:rgb(255,0,0);stroke-width:1');
-
                 var line = "<line x1='" + x1 + "' y1='" + y1 + "' x2='" + x2 + "' y2='" + y2 + "' style='stroke:rgb(255,0,0);stroke-width:1'/>";
 
                 svgCancas = svgCancas + line;
-
-                //canvas.appendChild(line);
             }
 
             svgCancas = svgCancas + "</svg>";
 
             canvasHolder.innerHTML = svgCancas;
+
+            __log('Generating SVG audio wave..DONE');
         }
 
         function drawHTMLCanvas(leftChannel /* is an AudioBuffer */) {
@@ -281,6 +282,16 @@
                 __log('No live audio input: ' + e);
             });
         };
+
+        // code for playback
+        // var newSource = audio_context.createBufferSource();
+        // var newBuffer = audio_context.createBuffer(2, buffers[0].length, audio_context.sampleRate);
+        // newBuffer.getChannelData(0).set(buffers[0]);
+        // if (buffers.length > 1)
+        //     newBuffer.getChannelData(1).set(buffers[1]);
+        // newSource.buffer = newBuffer;
+        // newSource.connect(audio_context.destination);
+        // newSource.start(0);
     </script>
     <script src="recorder.js"></script>
 </body>
