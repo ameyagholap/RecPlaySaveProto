@@ -117,14 +117,27 @@
         </tr>
         <tr>
             <td>
-                Wave width
+                Wave size
             </td>
             <td>
                 <select id="color_width">
-                    <option value="800">800</option>
+                    <option value="800" selected>800</option>
                     <option value="1000">1000</option>
                     <option value="2000">2000</option>
                     <option value="3000">3000</option>
+                    <option value="4000">4000</option>
+                    <option value="5000">5000</option>
+                </select>
+                px &nbsp; &nbsp; -by- &nbsp; &nbsp;
+                <select id="color_height">
+                    <option value="200" selected>200</option>
+                    <option value="250">250</option>
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="2000">2000</option>
+                    <option value="3000">3000</option>
+                    <option value="4000">4000</option>
+                    <option value="5000">5000</option>
                 </select>
                 px
             </td>
@@ -150,7 +163,14 @@
         </tr>
         <tr>
             <td>
-                <input type="button" value="Apply" onclick="javascript:drawHTMLCanvas1();" />
+                <input type="button" value="Apply" onclick="javascript:drawHTMLCanvasWait();" />
+            </td>
+            <td>
+                <div style="position: relative; left: 0; top: 0; width: 100%; height: 100%; z-index: 11;
+                    display: none" id="loading">
+                    <img src="loading2.GIF" alt="Generating wave.." height="20px" width="22px" />
+                    <small>Generating wave..</small>
+                </div>
             </td>
         </tr>
     </table>
@@ -159,10 +179,6 @@
         <tr>
             <td>
                 <div style="position: relative; width: 800px; height: 200px" id="containerDIV">
-                    <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 11;
-                        display: none" id="loading">
-                        <img src="loading1.GIF" alt="Generating wave.." />
-                    </div>
                     <div style="position: absolute; left: 0; top: 0; background-image: url('awalogo1.png');
                         background-repeat: repeat; width: 100%; height: 100%; z-index: 10">
                     </div>
@@ -212,7 +228,6 @@
         }
 
         function stopRecording(button) {
-            loading.style.display = "inline";
             clearInterval(recordingCounter);
 
             recorder && recorder.stop();
@@ -280,75 +295,42 @@
 
                     __log('Generating spectrogram..');
 
-                    drawHTMLCanvas(buffers[0]);
-
-                    //drawSVGCanvas(buffers[0]);
-
-                    __log('Generating spectrogram..DONE');
+                    drawHTMLCanvasWait();
                 }
             }
             catch (e) {
                 alert(e);
             }
-            finally {
-                loading.style.display = "none";
-            }
         }
 
-        function drawSVGCanvas(buffer) {
-            __log('Generating SVG audio wave..');
-
-            var canvasW = screen.availWidth - 200; //canvas.clientHeight;
-            var canvasH = 450; //canvas.clientHeight;
-            var singleXUnit = canvasW / buffer.length;
-
-            var svgCancas = "<svg id='canvas' style='height: " + canvasH + "px; width: " + canvasW + "px; border: solid 1px gray'>";
-
-            var alternateSample = 1;
-            if (buffer.length > 300000)
-                alternateSample = 2;
-            if (buffer.length > 600000)
-                alternateSample = 4;
-
-            for (i = 0; i < buffer.length - 1; i = i + alternateSample) {
-
-                var x1 = i * singleXUnit;
-                var y1 = (1 - buffer[i]) * (canvasH / 2);
-                var x2 = (i + 1) * singleXUnit;
-                var y2 = (1 - buffer[i + 1]) * (canvasH / 2)
-
-                var line = "<line x1='" + x1 + "' y1='" + y1 + "' x2='" + x2 + "' y2='" + y2 + "' style='stroke:rgb(255,0,0);stroke-width:1'/>";
-
-                svgCancas = svgCancas + line;
-            }
-
-            svgCancas = svgCancas + "</svg>";
-
-            canvasHolder.innerHTML = svgCancas;
-
-            __log('Generating SVG audio wave..DONE');
+        function drawHTMLCanvasWait() {
+            loading.style.display = "inline";
+            window.setTimeout(drawHTMLCanvas1, 1500);
         }
 
         function drawHTMLCanvas1() {
             try {
-                loading.style.display = "inline";
                 if (last_known_buffer == null) {
                     alert('Recorded wave could not be found. Please record a wave to apply colors.');
+                    return;
                 }
+                loading.style.display = "inline";
                 drawHTMLCanvas(last_known_buffer);
             }
             finally {
+                __log('Generating spectrogram..DONE');
                 loading.style.display = "none";
             }
         }
 
-        function drawHTMLCanvas(leftChannel /* is an AudioBuffer */) {
-            //var leftChannel = buff.getChannelData(0); // Float32Array describing left channel     
+        function drawHTMLCanvas(leftChannel) {
             //
             containerDIV.style.width = color_width.value + "px";
+            containerDIV.style.height = color_height.value + "px";
             canvasToDraw.width = color_width.value;
+            canvasToDraw.height = color_height.value;
             canvasToDraw.style.width = color_width.value + "px";
-            canvasToDraw.style.height = "200px";
+            canvasToDraw.style.height = color_height.value + "px";
             //
             var lineOpacity = canvasToDraw.width / leftChannel.length;
             context = canvasToDraw.getContext('2d');
