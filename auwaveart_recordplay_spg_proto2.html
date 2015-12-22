@@ -4,6 +4,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>AudioWaveArt - Record your voice sample</title>
     <script src="jscolor.js"></script>
+    <style>
+        .watermark
+        {
+            background-image: url('awaorig.png');
+            background-repeat: repeat;
+        }
+    </style>
 </head>
 <body style="font-family: Arial; padding: 20px">
     <h2>
@@ -179,8 +186,8 @@
         <tr>
             <td>
                 <div style="position: relative; width: 800px; height: 200px" id="containerDIV">
-                    <div style="position: absolute; left: 0; top: 0; background-image: url('awalogo1.png');
-                        background-repeat: repeat; width: 100%; height: 100%; z-index: 10">
+                    <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 10"
+                        class="watermark">
                     </div>
                     <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #cccccc;
                         z-index: 0">
