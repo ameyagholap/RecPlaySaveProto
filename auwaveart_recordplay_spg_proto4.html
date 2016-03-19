@@ -1,0 +1,512 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>AudioWaveArt - Record your voice sample</title>
+    <script src="jscolor.js"></script>
+    <style>
+        .watermark
+        {
+            background-image: url('awaorig.png');
+            background-repeat: repeat;
+        }
+        td
+        {
+            padding: 5px 5px 5px 5px;
+            font-family: Verdana;
+            font-size: 12px;
+        }
+        input
+        {
+            font-family: Verdana;
+            font-size: 12px;
+        }
+        select
+        {
+            font-family: Verdana;
+            font-size: 12px;
+        }
+        .color_text
+        {
+            font-family: Verdana;
+            font-size: 10px;
+            width: 80px;
+        }
+    </style>
+</head>
+<body style="font-family: Arial; padding: 20px">
+    <table cellpadding="0" cellspacing="1" style="background-color: #aaccff" border="0">
+        <tr style="height: 40px">
+            <td>
+                <span style="font-size: 18px">Record Wave</span>
+            </td>
+            <td style="width: 450px">
+                <button onclick="startRecording(this);">
+                    START RECORDING</button>
+                &nbsp;&nbsp;&nbsp;
+                <button id="btnStop" onclick="stopRecording(this);" disabled="disabled">
+                    STOP RECORDING</button>
+                <select id="interval" style="display: none">
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                    <option value="30" selected="selected">30</option>
+                </select>
+            </td>
+            <td>
+                <div style="position: relative; left: 0; top: 0; width: 100%; height: 100%; z-index: 11;
+                    display: none" id="loading">
+                    <img src="loading2.GIF" alt="Generating wave.." height="20px" width="22px" />
+                    <small>Generating wave..</small>
+                </div>
+            </td>
+        </tr>
+        <tr style="background-color: #ffffff; height: 40px">
+            <td style="width: 150px">
+                Back color
+            </td>
+            <td style="padding-left: 0px;">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                            <input class="jscolor" value="FF0000" id="color_back" style="padding: 4px 4px 4px 4px;
+                                font-size: 10px; width: 60px">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr style="background-color: #ffffff; height: 40px">
+            <td>
+                Wave Colors
+            </td>
+            <td style="padding-left: 0px;">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                            <input class="jscolor" value="41F76C" id="color_wave1" style="padding: 4px 4px 4px 4px;
+                                font-size: 10px; width: 60px">
+                        </td>
+                        <td>
+                            <input type="checkbox" id="color_wave2_YES" />
+                        </td>
+                        <td>
+                            <input class="jscolor" value="41F76C" id="color_wave2" style="padding: 4px 4px 4px 4px;
+                                font-size: 10px; width: 60px">
+                        </td>
+                        <td>
+                            <input type="checkbox" id="color_wave3_YES" />
+                        </td>
+                        <td>
+                            <input class="jscolor" value="41F76C" id="color_wave3" style="padding: 4px 4px 4px 4px;
+                                font-size: 10px; width: 60px">
+                        </td>
+                        <td>
+                            <input type="checkbox" id="color_wave4_YES" />
+                        </td>
+                        <td>
+                            <input class="jscolor" value="41F76C" id="color_wave4" style="padding: 4px 4px 4px 4px;
+                                font-size: 10px; width: 60px">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <select id="color_sample">
+                    <option value="150" selected="selected">Randomize Option 1</option>
+                    <option value="200">Randomize Option 2</option>
+                    <option value="500">Randomize Option 3</option>
+                    <option value="1000">Randomize Option 4</option>
+                </select>
+            </td>
+        </tr>
+        <tr style="background-color: #ffffff; height: 40px">
+            <td>
+                Wave size
+            </td>
+            <td>
+                <select id="color_width">
+                    <option value="800" selected="selected">800</option>
+                    <option value="1000">1000</option>
+                    <option value="2000">2000</option>
+                    <option value="3000">3000</option>
+                    <option value="4000">4000</option>
+                    <option value="5000">5000</option>
+                </select>
+                px &nbsp; &nbsp; -by- &nbsp; &nbsp;
+                <select id="color_height">
+                    <option value="200" selected="selected">200</option>
+                    <option value="250">250</option>
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="2000">2000</option>
+                    <option value="3000">3000</option>
+                    <option value="4000">4000</option>
+                    <option value="5000">5000</option>
+                </select>
+                px
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr style="background-color: #ffffff; height: 40px">
+            <td>
+            </td>
+            <td>
+                <input type="submit" value="Apply Colors + Size" onclick="javascript:drawHTMLCanvasWait();"
+                    style="color: Blue" />
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr style="background-color: #ffffff; height: 40px">
+            <td>
+                <a href="#" id="wavDldLnk"></a>
+            </td>
+            <td>
+                <audio id="wavListen"></audio>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr style="background-color: #ffffff;">
+            <td colspan="3">
+                <div style="position: relative; width: 800px; height: 200px" id="containerDIV">
+                    <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 10"
+                        class="watermark">
+                    </div>
+                    <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #cccccc;
+                        z-index: 0">
+                        <canvas id="canvasToDraw" width="800px" height="200px"></canvas>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr style="display: none">
+            <td>
+                Opacity
+            </td>
+            <td>
+                <select id="color_alpha">
+                    <option value="0.01">0.01</option>
+                    <option value="0.02">0.02</option>
+                    <option value="0.03">0.03</option>
+                    <option value="0.04">0.04</option>
+                    <option value="0.05">0.05</option>
+                    <option value="0.06">0.06</option>
+                    <option value="0.07">0.07</option>
+                    <option value="0.08">0.08</option>
+                    <option value="0.09">0.09</option>
+                    <option value="0.10">0.10</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.6">0.6</option>
+                    <option value="0.7">0.7</option>
+                    <option value="0.8">0.8</option>
+                    <option value="0.9">0.9</option>
+                    <option value="1.0" selected="selected">1.0</option>
+                </select>
+            </td>
+        </tr>
+        <tr style="display: none">
+            <td>
+                Thickness
+            </td>
+            <td>
+                <select id="color_thick">
+                    <option value="0.2">0.2</option>
+                    <option value="0.3">0.3</option>
+                    <option value="0.4">0.4</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.6">0.6</option>
+                    <option value="0.7">0.7</option>
+                    <option value="0.8">0.8</option>
+                    <option value="0.9">0.9</option>
+                    <option value="1.0" selected="selected">1.0</option>
+                    <option value="2.0">2.0</option>
+                    <option value="3.0">3.0</option>
+                </select>
+            </td>
+        </tr>
+        <tr style="display: none">
+            <td>
+                Paint style
+            </td>
+            <td>
+                <select id="color_style">
+                    <option value="lighter" selected="selected">lighter</option>
+                    <option value="xor">xor</option>
+                    <option value="source-in">source-in</option>
+                    <option value="source-out">source-out</option>
+                    <option value="source-over">source-over</option>
+                    <option value="source-atop">source-atop</option>
+                    <option value="destination-in">destination-in</option>
+                    <option value="destination-out">destination-out</option>
+                    <option value="destination-over">destination-over</option>
+                    <option value="destination-atop">destination-atop</option>
+                </select>
+            </td>
+        </tr>
+        <tr style="display: none">
+            <td>
+                Compression
+            </td>
+            <td>
+                <input type="text" id="txtComp" value="150" style="width: 50px" />
+            </td>
+        </tr>
+        <tr style="background-color: #ffffff; display: none">
+            <td>
+                Developer Log
+            </td>
+            <td>
+                <pre id="log"></pre>
+            </td>
+            <td>
+            </td>
+        </tr>
+    </table>
+    <script>
+        function __log(e, data) {
+            log.innerHTML += "\n" + e + " " + (data || '');
+        }
+
+        var audio_context;
+        var recorder;
+
+        function startUserMedia(stream) {
+            var input = audio_context.createMediaStreamSource(stream);
+            __log('Media stream created.');
+
+            recorder = new Recorder(input, { numChannels: 1 }); //mono channel recording
+            __log('Recorder initialised.');
+        }
+
+        function startRecording(button) {
+            recorder && recorder.record();
+
+            recordingTimer = interval.value; //seconds
+            recordingCounter = setInterval(recordingCountdown, 1000); //1000 will  run it every 1 second
+
+            button.disabled = true;
+            button.nextElementSibling.disabled = false;
+            __log('Recording...');
+        }
+
+        function stopRecording(button) {
+            clearInterval(recordingCounter);
+
+            recorder && recorder.stop();
+
+            button.innerText = 'STOP RECORDING';
+            button.disabled = true;
+            button.previousElementSibling.disabled = false;
+
+            __log('Stopped recording.');
+
+            // create WAV download link using audio data blob
+            createDownloadLink();
+        }
+
+        var recordingTimer = 30; //seconds
+        var recordingCounter = null;
+
+        function recordingCountdown() { //will run every 1 second
+            recordingTimer = recordingTimer - 1;
+            btnStop.innerText = 'STOP RECORDING (' + recordingTimer + ' seconds)';
+            if (recordingTimer <= 0) {
+                stopRecording(btnStop);
+                return;
+            }
+        }
+
+        function createDownloadLink() {
+            __log('Creating download link..');
+            recorder && recorder.exportWAV(exportWAVB, 'audio/mp3');
+        }
+
+        function exportWAVB(blob) {
+            try {
+                var url = URL.createObjectURL(blob);
+
+                var wavID = new Date().toISOString() + '.wav';
+
+                wavListen.controls = true;
+                wavListen.src = url;
+
+                wavDldLnk.href = url;
+                wavDldLnk.download = wavID;
+                wavDldLnk.innerHTML = "Download Wave"; //hf.download;
+            }
+            catch (e) {
+                alert(e);
+                __log("Error: " + e);
+            }
+            __log('Creating download link..DONE');
+            recorder.getBuffer(inspectFloatArray);
+            recorder.clear();
+        }
+
+        var last_known_buffer = null;
+
+        function inspectFloatArray(buffers) {
+            try {
+                last_known_buffer = null;
+
+                if (buffers == null || buffers.length < 1) return;
+
+                if (buffers.length > 0) {
+
+                    last_known_buffer = buffers[0];
+
+                    __log('Generating spectrogram..');
+
+                    drawHTMLCanvasWait();
+                }
+            }
+            catch (e) {
+                alert(e);
+            }
+        }
+
+        function drawHTMLCanvasWait() {
+            loading.style.display = "inline";
+            window.setTimeout(drawHTMLCanvas1, 1500);
+        }
+
+        function drawHTMLCanvas1() {
+            try {
+                if (last_known_buffer == null) {
+                    alert('Recorded wave could not be found. Please record a wave to apply colors.');
+                    return;
+                }
+                loading.style.display = "inline";
+                drawHTMLCanvas(last_known_buffer);
+            }
+            finally {
+                __log('Generating spectrogram..DONE');
+                loading.style.display = "none";
+            }
+        }
+
+        function drawHTMLCanvas(leftChannel) {
+            //
+            containerDIV.style.width = color_width.value + "px";
+            containerDIV.style.height = color_height.value + "px";
+            canvasToDraw.width = color_width.value;
+            canvasToDraw.height = color_height.value;
+            canvasToDraw.style.width = color_width.value + "px";
+            canvasToDraw.style.height = color_height.value + "px";
+            //
+            var lineOpacity = canvasToDraw.width / leftChannel.length;
+            context = canvasToDraw.getContext('2d');
+            context.save();
+            //
+            context.fillStyle = '#' + color_back.value;
+            context.fillRect(0, 0, canvasToDraw.width, canvasToDraw.height);
+            context.translate(0, canvasToDraw.height / 2); //important-make axis center of canvas
+            //            
+            //context.globalCompositeOperation = 'lighter'; //color_style.value; //source-over:default
+            context.globalAlpha = color_alpha.value; // lineOpacity ;
+            //
+            var colors = new Array();
+            colors.push(color_wave1.value);
+            if (color_wave2_YES.checked) colors.push(color_wave2.value);
+            if (color_wave3_YES.checked) colors.push(color_wave3.value);
+            if (color_wave4_YES.checked) colors.push(color_wave4.value);
+            //
+            var shiftcolor = 0;
+            var shiftsample = color_sample.value * 10;
+            var shiftcurrent = 0;
+            //
+            __log('Wave length: ' + leftChannel.length + ' - ' + 'Colors: ' + colors.length);
+            //
+            var compressed = new Array();
+            var j = 0;
+            var jmax = 0;
+            var jskip = 10;
+            jskip = txtComp.value;  //compression level
+            //
+            if (jskip > 1) {
+                __log('leftChannel:' + leftChannel.length);
+                for (var i = 0; i < leftChannel.length; i++) {
+                    if (Math.abs(leftChannel[i]) > Math.abs(jmax))
+                        jmax = leftChannel[i];
+                    j++;
+                    if (j == jskip) {
+                        j = 0;
+                        compressed.push(jmax);
+                        jmax = 0;
+                    }
+                }
+            }
+            else {
+                compressed = leftChannel;
+            }
+            __log('compressed:' + compressed.length);
+            //
+            var x1 = 0
+            var x2 = 0
+            var y1 = 0
+            for (var i = 0; i < compressed.length; i++) {
+                //
+                context.beginPath();
+                context.moveTo(x1, y1);
+                //
+                x1 = Math.floor(canvasToDraw.width * i / compressed.length); //compressed.length);
+                x2 = Math.floor(canvasToDraw.width * ((i + 1) / compressed.length)); //compressed.length);
+                y1 = compressed[i] * canvasToDraw.height / 2;
+                //
+                context.lineWidth = color_thick.value;
+                context.lineTo(x2, y1);
+                x1 = x2;
+                //
+                context.strokeStyle = '#' + colors[shiftcurrent];
+                context.stroke();
+                //
+                shiftcolor++;
+                if (shiftcolor > shiftsample) {
+                    shiftcolor = 0;
+                    //
+                    shiftcurrent++;
+                    if (shiftcurrent >= colors.length)
+                        shiftcurrent = 0;
+                }
+            }
+            context.restore();
+        }
+
+        window.onload = function init() {
+            try {
+                // webkit shim
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+                window.URL = window.URL || window.webkitURL;
+
+                audio_context = new AudioContext;
+                __log('Audio context set up.');
+                __log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+            } catch (e) {
+                alert('No web audio support in this browser!');
+            }
+
+            navigator.getUserMedia({ audio: true }, startUserMedia, function (e) {
+                __log('No live audio input: ' + e);
+            });
+        };
+
+        // code for playback
+        // var newSource = audio_context.createBufferSource();
+        // var newBuffer = audio_context.createBuffer(2, buffers[0].length, audio_context.sampleRate);
+        // newBuffer.getChannelData(0).set(buffers[0]);
+        // if (buffers.length > 1)
+        //     newBuffer.getChannelData(1).set(buffers[1]);
+        // newSource.buffer = newBuffer;
+        // newSource.connect(audio_context.destination);
+        // newSource.start(0);
+    </script>
+    <script src="recorder.js"></script>
+</body>
+</html>
